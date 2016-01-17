@@ -22,16 +22,16 @@ interface
 
 uses SysUtils, DB, Variants;
 
-type
-  TOwnerData = record
-  private
-    FData: OleVariant;
-  public
-    constructor Create(var aData: OleVariant);
-    function Add(const Name: string; Value: Variant; FldType: TFieldType=ftUnknown): Boolean;
-    function Get(const Name: string): Variant;
-    property Data: OleVariant read FData write FData;
-  end;
+//type
+//  TOwnerData = record
+//  private
+//    FData: OleVariant;
+//  public
+//    constructor Create(var aData: OleVariant);
+//    function Add(const Name: string; Value: Variant; FldType: TFieldType=ftUnknown): Boolean;
+//    function Get(const Name: string): Variant;
+//    property Data: OleVariant read FData write FData;
+//  end;
 { OwnerData structure:
   string (TParams)
          DSCOMM_REQUESTDATA (TParams)
@@ -102,20 +102,20 @@ end;
 
 { TOwnerData }
 
-function TOwnerData.Add(const Name: string; Value: Variant; FldType: TFieldType): Boolean;
-begin
-  Result := OwnerData_Add(Name,FldType,Value,self.FData);
-end;
-
-constructor TOwnerData.Create(var aData: OleVariant);
-begin
-  FData := aData;
-end;
-
-function TOwnerData.Get(const Name: string): Variant;
-begin
-  Result := OwnerData_Get(Name,self.FData);
-end;
+//function TOwnerData.Add(const Name: string; Value: Variant; FldType: TFieldType): Boolean;
+//begin
+//  Result := OwnerData_Add(Name,FldType,Value,self.FData);
+//end;
+//
+//constructor TOwnerData.Create(var aData: OleVariant);
+//begin
+//  FData := aData;
+//end;
+//
+//function TOwnerData.Get(const Name: string): Variant;
+//begin
+//  Result := OwnerData_Get(Name,self.FData);
+//end;
 
 {@ Add to Dataset Properties VarArray}
 function DSVarData_Add(Name: string; Value: Variant; IncludeInDelta: Boolean; var VarData: OleVariant): integer;

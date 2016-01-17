@@ -245,7 +245,10 @@ function IsDatasetQuery(Dataset: TDataset): Boolean;
 function ParseSQL(SQL: string; Section: TSQLToken; ParseList: TStrings=nil): string;
 function ChangeSQLWhere(Sql, sWhere: string; DoAdd: Boolean): string;
 
+function IsParamsString(s: string): Boolean;
 function CreateTParams(const aParams: array of TParamProps): TParams;
+function ExtractParam(Params: TParams; const Path: array of string): Variant; overload;
+function ExtractParam(strParams: string; const Path: array of string): Variant; overload;
 function UpdateParam(Params: TParams; const Path: array of string;
                      Value: Variant; FldType: TFieldType): Boolean; overload;
 function UpdateParam(strParams: string; const Path: array of string;
@@ -1830,12 +1833,56 @@ begin
   end;
 end;
 
+function IsParamsString(s: string): Boolean;
+begin
+  Result := AnsiStartsText('Object TParamsStorage',s);
+end;
 function CreateTParams(const aParams: array of TParamProps): TParams;
 var i: integer;
 begin
   Result := TParams.Create;
   for i:=0 to High(aParams) do
    Result.CreateParam(aParams[i].DataType,aParams[i].Name,ptUnknown).Value := aParams[i].Value;
+end;
+
+function ExtractParam(Params: TParams; const Path: array of string): Variant; //TParam dies upon TParams.Free
+var WP: TParams;
+    P: TParam;
+    A: array of string;
+    i: integer;
+begin
+  Result := Unassigned;
+  if Length(Path) = 1 then
+     begin
+     P := Params.FindParam(Path[0]);
+     if not Assigned(P) then Exit;
+     Result := P.Value;
+     end
+  else
+     begin
+     P := Params.FindParam(Path[0]);
+     if not Assigned(P) then Exit;
+     WP := TParams.Create;
+     try if P.AsString <> '' then
+           StringToParams(P.AsString, WP);
+      SetLength(A,Length(Path)-1);
+      for i:=0 to Length(A)-1 do A[i] := Path[i+1];
+      Result := ExtractParam(WP,A);
+      finally WP.Free;
+      end;
+     end;
+end;
+
+function ExtractParam(strParams: string; const Path: array of string): Variant; //TParam dies upon TParams.Free
+var wParams: TParams;
+begin
+  wParams := TParams.Create(nil);
+  try
+   if strParams<>'' then StringToParams(strParams,wParams);
+   Result := ExtractParam(wParams,Path);
+   finally
+    wParams.Free;
+   end;
 end;
 
 function UpdateParam(Params: TParams; const Path: array of string;

@@ -21,7 +21,7 @@ unit AppIni;
 
 interface
 
-uses WinTypes, WinProcs, Classes, Graphics, IniFiles, SysUtils, Forms, Quickrpt, Controls;
+uses WinTypes, WinProcs, Classes, Graphics, IniFiles, SysUtils, Forms, Controls;
 
 { TODO 1 : TXMLINI class to use xml file instead of ini file }
 
@@ -32,7 +32,6 @@ uses WinTypes, WinProcs, Classes, Graphics, IniFiles, SysUtils, Forms, Quickrpt,
 {@}procedure LoadAppSection(Section: string; IniF: string; InList: TStrings);
 {@}procedure LoadAppValues(InList: TStrings);
 {@}procedure SetFormFonts(Form: TForm; C: TComponent=nil; Fonts: string='Fonts');
-{@}procedure SetPrintFonts(Form: TForm; QRep: TQuickRep; Fonts: string='Fonts');
 function BaseFont: TFont;
 function PrintFont: TFont;
 function Font1: TFont;
@@ -54,9 +53,7 @@ const
 
 implementation
 
-uses TypInfo, Utilfun, StrUtils,
-     //DBGrids, DBVGrids4, TabNotBk, Tabs, dxDBGrid,Controls,
-     QrCtrls, QrAngLbl;
+uses TypInfo, Utilfun, StrUtils;
 
 function AppIniFile: TIniFile;
 var sf: string;
@@ -430,101 +427,6 @@ begin
   end;
 end;
 
-type TQRAngledCracker = class(TQRAngledCustom);
-     TQRCustomCracker = class(TQRCustomLabel);
-
-procedure SetPrintFonts(Form: TForm; QRep: TQuickRep; Fonts: string);
-var i: integer;
-    F: TFontName;
-    obj: TObject;
-    tc: TComponent;
-    FP, F4,F5,F6, FX: TFont;
-    //ParentFont: Boolean;
-    FTag: integer;
-begin
-  if AnsiSameText(Fonts,'*NONE') then Exit;
-  FontSet := Fonts;
-  if FontSet = '' then FontSet := DEFFONTSET;
-  F := QRep.Font.Name; {Keep design font for special font checking}
-  FP := PrintFont; F4 := Font4; F5 := Font5; F6 := Font6;
- try
-  if Assigned(Form) then Form.Font.Assign(FP);
-  QRep.Font.Assign(FP);
-  with Form do
-  for I := 0 to ComponentCount -1 do begin
-   tc := Components[I];
-
-   //FontTag property support
-   FTag := 0;
-   if IsPublishedProp(tc,'FontTag') then
-    try
-      FTag := GetPropValue(tc,'FontTag',False);
-      if FTag = 0 then Abort;
-      FX := PrintFontX(FTag);
-      try
-        if IsPublishedProp(tc, 'Font') then
-         begin
-         obj := GetObjectProp(tc,'Font',TFont);
-         if obj is TFont then
-           (obj as TFont).Assign(FX);
-         end;
-      finally FX.Free;
-      end;
-    except ;
-    end;
-   if FTag <> 0 then Continue;
-
-   if tc is TQRSysData then
-     with tc as TQRSysData do
-      case Data of
-       qrsReportTitle : if ParentFont then Font.Assign(F6);
-      else  if ParentFont then Font.Assign(F5);
-      end
-   else
-   if tc is TQRAngledLabel then //Labels only
-     with tc as TQRAngledLabel do
-      begin
-      if ParentFont then Font.Assign(F5)
-      else if Font.Name = F then Font.Assign(F4);
-      end
-   else
-   if tc is TQRAngledCustom then //all other customlabels
-    if tc is TQRAngledDBText then
-     if not TQRAngledDBText(tc).ShowData then
-      with tc as TQRAngledDBText do
-        begin
-        if ParentFont then Font.Assign(F5)
-        else if Font.Name = F then Font.Assign(F4);
-        end
-     else
-        begin
-        if (not TQRAngledDBText(tc).ParentFont) and (TQRAngledDBText(tc).Font.Name = F) then
-           TQRAngledDBText(tc).Font.Assign(F4);
-        end
-    else
-      begin
-      if (not TQRAngledCracker(tc).ParentFont) and (TQRAngledCracker(tc).Font.Name = F) then
-         TQRAngledCracker(tc).Font.Assign(F4);
-      end
-   else
-   if tc is TQRLabel then //Labels only
-     with tc as TQRLabel do
-      begin
-      if ParentFont then Font.Assign(F5)
-      else if Font.Name = F then Font.Assign(F4);
-      end
-   else
-   if tc is TQRCustomLabel then //all other customlabels
-     begin
-     if (not TQRCustomCracker(tc).ParentFont) and (TQRCustomCracker(tc).Font.Name = F) then
-        TQRCustomCracker(tc).Font.Assign(F4);
-     end
-   ;
-  end; //for loop
- finally
-  FP.Free; F4.Free; F5.Free; F6.Free;
- end;
-end;
 
 initialization
   FontSet := DEFFONTSET;
